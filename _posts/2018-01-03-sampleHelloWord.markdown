@@ -1,3 +1,11 @@
+---
+layout: post
+title:  "libevent sample HelloWorld.c"
+date:   2018-01-03 22:45:10 -0800
+categories: libevent
+---
+
+
 1. 创建一个event_base
 2. 调用函数evconnlistener_new_bind函数，返回1个listener
 3. 调用evsignal_new，增加一个信号事件处理函数

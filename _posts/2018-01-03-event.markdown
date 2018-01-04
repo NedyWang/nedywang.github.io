@@ -1,3 +1,11 @@
+---
+layout: post
+title:  "libevent event"
+date:   2018-01-03 22:45:10 -0800
+categories: libevent
+---
+
+
 1.	event结构体
 2.	event_add函数
 
