@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "libevent sample HelloWorld.c"
+title:  "[libevent源码剖析] sample HelloWorld.c"
 date:   2018-01-03 22:45:10 -0800
 categories: libevent
 ---
@@ -11,27 +11,27 @@ categories: libevent
 3. 调用evsignal_new，增加一个信号事件处理函数
 4. 调用event\_base\_dispatch进入事件主循环
 
+
 <pre>
-<code>
 struct evconnlistener *
 evconnlistener_new_bind(struct event_base *base, evconnlistener_cb cb,
     void *ptr, unsigned flags, int backlog, const struct sockaddr *sa,
     int socklen)
-</code>
+
 1. 创建套接字和evconnlistener
 2. 调用setsockopt,设置套接字选项为SO_KEEPALIVE，根据参数flag再针对性的设定option
 3. 调用函数bind对创建的套接字和传入的参数sa进行绑定
 4. 调用函数evconnlistener_new
 5. return evconnlistener
 </pre>
+_ _ _
 
 <pre>
-<code>
 struct evconnlistener *
 evconnlistener_new(struct event_base *base,
     evconnlistener_cb cb, void *ptr, unsigned flags, int backlog,
     evutil_socket_t fd)
-</code>
+
 1. 调用函数listen，将主动套接字转变为被动套接字，backlog可以根据参数设定，如果backlog是小于0的，那么默认是设置成128
 2. 分配一个evconnlistener_event，指针名为lev，并且对其进行赋值
 	1. 设置lev->base.ops为evconnlistener_event_ops
@@ -39,8 +39,9 @@ evconnlistener_new(struct event_base *base,
 	3. 设置......
 3. 调用函数event_assign，初始化lev->listener(这是一个event)
 4. 如果传入的flag参数的LEV_OPT_DISABLE没有被置位的话，调用函数lev->base.ops.enable
-==================================================================================
-<code>
+</pre>
+
+<pre>
 evconnlistener_ops是一个结构体，里面存放的是函数指针，
 struct evconnlistener_ops {
 	int (*enable)(struct evconnlistener *);
@@ -62,7 +63,4 @@ static const struct evconnlistener_ops evconnlistener_event_ops = {
 };
 
 那么此处调用的lev->base.ops.enable也就是event_listener_enable，这个函数功能是调用函数event_add将lev->listener事件插入添加到事件队列中去。
-
-
-</code>
 </pre>

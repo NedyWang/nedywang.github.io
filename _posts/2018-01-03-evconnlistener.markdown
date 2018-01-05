@@ -6,19 +6,22 @@ categories: libevent
 ---
 
 [源码剖析 ----- HelloWord.c]
+
 <pre>
 struct evconnlistener *
 evconnlistener_new(
 	struct event_base *base,
-	evconnlistener_cb cb, 
-	void *ptr, 
-	unsigned flags, 
+	evconnlistener_cb cb,
+	void *ptr,
+	unsigned flags,
 	int backlog,
     evutil_socket_t fd)
-</pre>
 
 1. 调用listen，将fd变为被动套接字
 2. 分配evconnlistener_event ---->lev
+</pre>
+_ _ _
+
 <pre>
 struct evconnlistener {
     sconst struct evconnlistener_ops *ops；
@@ -53,7 +56,7 @@ typedef void (*evconnlistener_cb)(struct evconnlistener *, evutil_socket_t, stru
 
 </pre>
 
-ops == evconnlinstener_ops，是一个结构体，结构体成员是函数指针
+ops := evconnlinstener_ops，是一个结构体，结构体成员是函数指针
 <pre>struct evconnlistener_ops {
 	int (*enable)(struct evconnlistener *);
 	int (*disable)(struct evconnlistener *);

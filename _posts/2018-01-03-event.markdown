@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "libevent event"
+title:  "[libevent 源码剖析]  event"
 date:   2018-01-03 22:45:10 -0800
 categories: libevent
 ---
@@ -47,6 +47,7 @@ categories: libevent
 4. ev_res，事件返回，已经就绪的事件
 5. 时间相关....//TODO
 </pre>
+
 <pre>
 struct event_callback {
 	TAILQ_ENTRY(event_callback) evcb_active_next;
@@ -64,17 +65,27 @@ struct event_callback {
 };
 </pre>
 
+_ _ _
+
 2. event\_add实际是调用函数event_add_nolock_去执行工作的
 
 <pre>
-<code>
 int
 event_add_nolock_(struct event *ev, const struct timeval *tv,
     int tv_is_absolute)
-</code>
+
 1. add前准备
 2. 调用函数add event
-	1. 
+	1.
 3. add后处理
 </pre>
 
+
+```flow
+st=>start: Start
+op=>operation: Your Operation
+cond=>condition: Yes or No?
+e=>end
+st->op->cond
+cond(yes)->e
+cond(no)->op
