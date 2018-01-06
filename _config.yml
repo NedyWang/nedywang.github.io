@@ -26,7 +26,7 @@ github_username:  nedy_wang
 
 # Build settings
 markdown: kramdown
-theme: minima
+theme: jekyll-theme-hacker
 plugins:
   - jekyll-feed
 
