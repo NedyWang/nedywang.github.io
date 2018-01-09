@@ -136,20 +136,8 @@ dispatch=>operation: evsel->dispatch[epool_dispatch]
 process_active=>operation: event_process_active
 done=>condition: done
 st->event_dispatch->loop->running
-running(no)->dispatch->process_active->done
 running(yes)->e
+running(no)->dispatch->process_active->done
 done(yes)->e
-done(no)->loop
-```
-
-
-
-```flow
-st=>start: Start
-op=>operation: Your Operation
-cond=>condition: Yes or No?
-e=>end
-st->op->cond
-cond(yes)->e
-cond(no)->op
+done(no)->event_base_loop
 ```
