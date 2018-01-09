@@ -5,14 +5,13 @@ date:   2018-01-03 22:45:10 -0800
 categories: libevent
 ---
 
+<font face="微软雅黑">
 
-1.	event结构体
-2.	event_add函数
+libevent以事件驱动为驱动的，在libevent中是事件是怎么表示的？ 具体的是以什么样的机构体和什么样的操作函数实现，与事件相关联的又要哪些概念？
 
-========================
-
-1. event结构体
-<pre>struct event {
+#### 1. event结构体
+```
+struct event {
 	struct event_callback ev_evcallback;
 	/* for managing timeouts */
 	union {
@@ -41,14 +40,15 @@ categories: libevent
 	short ev_res;		/* result passed to event callback */
 	struct timeval ev_timeout;
 };
+```
 1. event_callback是1个结构体，定义了event的callback函数应该有的数据成员
 2. ev_是1个联合体，可以是io事件，也可以是signal处理函数
-3. ev_events，定义事件类型，是可读还是可写
+3. ev_events，定义所监听的事件，是可读事件还是可写事件
 4. ev_res，事件返回，已经就绪的事件
 5. 时间相关....//TODO
-</pre>
 
-<pre>
+**事件回调函数**
+```
 struct event_callback {
 	TAILQ_ENTRY(event_callback) evcb_active_next;
 	short evcb_flags;
@@ -63,23 +63,64 @@ struct event_callback {
 	} evcb_cb_union;
 	void *evcb_arg;
 };
-</pre>
+```
 
-_ _ _
 
-2. event\_add实际是调用函数event_add_nolock_去执行工作的
+#### 2. event\_add
+event\_add实际是调用函数event_add_nolock_去执行工作的。
 
-<pre>
+```
 int
-event_add_nolock_(struct event *ev, const struct timeval *tv,
-    int tv_is_absolute)
+event_add_nolock_(
+	struct event *ev,
+	const struct timeval *tv,
+	int tv_is_absolute)
+```
 
-1. add前准备
-2. 调用函数add event
-	1.
-3. add后处理
-</pre>
+|问题|解释|
+|:-|:-|
+|add到哪里去？| event_base有个类型为event_io_map的成员io, 在Linux平台，是一个event_signal_map，event_signal_map成员entries是个指针，本质就是一个数组， 数组成员是evmap_io指针，事件的fd作为数组的下标， 添加事件会添加到这个槽里面|
+|什么时候去执行所添加的事件？||
+|多线程相关？||
 
+#####event_io_map
+```
+#ifdef EVMAP_USE_HT
+#define HT_NO_CACHE_HASH_VALUES
+#include "ht-internal.h"
+struct event_map_entry;
+HT_HEAD(event_io_map, event_map_entry);
+#else
+#define event_io_map event_signal_map
+#endif
+
+/* Used to map signal numbers to a list of events.  If EVMAP_USE_HT is not
+   defined, this structure is also used as event_io_map, which maps fds to a
+   list of events.
+*/
+struct event_signal_map {
+	/* An array of evmap_io * or of evmap_signal *; empty entries are
+	 * set to NULL. */
+	void **entries;
+	/* The number of entries available in entries */
+	int nentries;
+};
+```
+
+#####evmap_io
+```
+struct evmap_io {
+	struct event_dlist events;
+	ev_uint16_t nread;
+	ev_uint16_t nwrite;
+	ev_uint16_t nclose;
+};
+```
+
+#### 3.关于事件的状态
+
+
+#### 4.关于事件的派发
 
 ```flow
 st=>start: Start
