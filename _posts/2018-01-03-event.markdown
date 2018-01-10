@@ -83,7 +83,8 @@ event_add_nolock_(
 |什么时候去执行所添加的事件？||
 |多线程相关？||
 
-#####event_io_map
+##### event_io_map
+
 ```
 #ifdef EVMAP_USE_HT
 #define HT_NO_CACHE_HASH_VALUES
@@ -107,7 +108,8 @@ struct event_signal_map {
 };
 ```
 
-#####evmap_io
+##### evmap_io
+
 ```
 struct evmap_io {
 	struct event_dlist events;
@@ -117,27 +119,34 @@ struct evmap_io {
 };
 ```
 
-####3.关于事件的状态
+#### 3.关于事件的状态
 
 
-####4.关于事件的触发与派发
+#### 4.关于事件的触发与派发
+
 事件的派发由event_base->dispatch实现，这个函数的具体实现是由不同的I/O复用机制所决定的。 epoll为例，后台是调用epoll_wait函数等待事件触发。
 事件触发后，将这个时间加入到event_base->activequeues[evcb->ecvb_priority]队列中[也就是active队列]。
 epoll->dispatch调用结束后，那么被触发的事件就会插入到active队列里面， 然后调用函数event_process_active去执行active队列中的函数。
-#####event_base->dispatch 流程图
 
-```flow
-st=>start: Start
-e=>end
-event_dispatch=>operation: event_base_dispatch
-loop=>operation: event_base_loop
-running=>condition: loop running?
-dispatch=>operation: evsel->dispatch[epool_dispatch]
-process_active=>operation: event_process_active
-done=>condition: done
-st->event_dispatch->loop->running
-running(yes)->e
-running(no)->dispatch->process_active->done
-done(yes)->e
-done(no)->event_base_loop
+##### event_base->dispatch 流程图
+
+```dot
+digraph G {
+	node [shape=record]
+	start
+	event_base_dispatch [shape="box"]
+	event_base_loop [shape="box"]
+	loop [shape="diamond"]
+	evselDispatch [shape="box" label="evsel->dispatch [epoll_dispatch]"]
+	event_process_active [shape="box"]
+	done [shape="diamond"]
+	end
+
+	start->event_base_dispatch->event_base_loop->loop
+	loop->end [label="no"]
+	loop->evselDispatch [label="yes"]
+	evselDispatch->event_process_active->done
+	done->end [label="yes"]
+	done->event_base_loop [label="no"]
+}
 ```
