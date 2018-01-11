@@ -132,7 +132,7 @@ epoll->dispatch调用结束后，那么被触发的事件就会插入到active�
 
 ```dot
 digraph G {
-	node [shape=record]
+	node [shape=box]
 	start
 	event_base_dispatch [shape="box"]
 	event_base_loop [shape="box"]
