@@ -7,8 +7,6 @@ categories: libevent
 
 这是一行测试
 
-<font face="微软雅黑">
-
 libevent以事件驱动为驱动的，在libevent中是事件是怎么表示的？ 具体的是以什么样的机构体和什么样的操作函数实现，与事件相关联的又要哪些概念？
 
 
@@ -158,5 +156,3 @@ digraph G {
 	done->event_base_loop [label="no"]
 }
 ```
-
- </font>
