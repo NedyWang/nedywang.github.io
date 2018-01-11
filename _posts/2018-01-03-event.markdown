@@ -12,7 +12,7 @@ categories: libevent
 libevent以事件驱动为驱动的，在libevent中是事件是怎么表示的？ 具体的是以什么样的机构体和什么样的操作函数实现，与事件相关联的又要哪些概念？
 
 
-####1. event结构体
+####1. event结构体 ####
 ```
 struct event {
 	struct event_callback ev_evcallback;
@@ -73,7 +73,7 @@ struct event_callback {
 };
 ```
 
-#### 2. event\_add
+#### 2. event\_add ####
 event\_add实际是调用函数event_add_nolock_去执行工作的。
 
 
@@ -91,7 +91,7 @@ event_add_nolock_(
 |什么时候去执行所添加的事件？||
 |多线程相关？||
 
-##### event_io_map
+##### event_io_map ####
 
 ```
 #ifdef EVMAP_USE_HT
@@ -116,7 +116,7 @@ struct event_signal_map {
 };
 ```
 
-##### evmap_io
+##### evmap_io ####
 
 ```
 struct evmap_io {
@@ -127,16 +127,16 @@ struct evmap_io {
 };
 ```
 
-#### 3.关于事件的状态
+#### 3.关于事件的状态 ####
 
 
-#### 4.关于事件的触发与派发
+#### 4.关于事件的触发与派发 ####
 
 事件的派发由event_base->dispatch实现，这个函数的具体实现是由不同的I/O复用机制所决定的。 epoll为例，后台是调用epoll_wait函数等待事件触发。
 事件触发后，将这个时间加入到event_base->activequeues[evcb->ecvb_priority]队列中[也就是active队列]。
 epoll->dispatch调用结束后，那么被触发的事件就会插入到active队列里面， 然后调用函数event_process_active去执行active队列中的函数。
 
-##### event_base->dispatch 流程图
+##### event_base->dispatch 流程图 ####
 
 ```dot
 digraph G {
