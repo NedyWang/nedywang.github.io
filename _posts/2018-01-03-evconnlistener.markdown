@@ -152,8 +152,8 @@ event_listener_enable(struct evconnlistener *lev)
 
 ```dot
 digraph G {
-	node[shape=box]
-	edge[]
+	node[shape=box, penwidth=3]
+	edge[penwidth=2]
 
 	subgraph cluster_evconnlistener_new_bind{
 		AStart[label=start]
@@ -173,10 +173,10 @@ digraph G {
 	}
 
 	descEvetnAssign [label="new a event, and init it with variables, like fd, events, callback functions",style=dashed,color=red,shape=box]
-	event_assign->descEvetnAssign[style=dashed]
+	event_assign->descEvetnAssign[style=dashed,color=blue]
 
 	descEvConnEnable[label="call event_listener_enable. In fact, it add listen event to table",style=dashed,color=red,shape=box]
-	evconnlistener_enable->descEvConnEnable [style=dashed]
+	evconnlistener_enable->descEvConnEnable [style=dashed, color=blue]
 
 }
 ```
