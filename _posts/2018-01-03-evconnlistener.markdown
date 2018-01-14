@@ -5,9 +5,11 @@ date:   2018-01-03 22:45:10 -0800
 categories: libevent
 ---
 
-[源码剖析 ----- HelloWord.c]
+<font face="微软雅黑">
 
-<pre>
+## eventlistener
+
+```
 struct evconnlistener *
 evconnlistener_new(
 	struct event_base *base,
@@ -15,14 +17,14 @@ evconnlistener_new(
 	void *ptr,
 	unsigned flags,
 	int backlog,
-    evutil_socket_t fd)
-
+	evutil_socket_t fd)
+```
 1. 调用listen，将fd变为被动套接字
 2. 分配evconnlistener_event ---->lev
-</pre>
+
 _ _ _
 
-<pre>
+```
 struct evconnlistener {
     sconst struct evconnlistener_ops *ops；
     void *lock;
@@ -34,18 +36,20 @@ struct evconnlistener {
     int accept4_flags;
     unsigned enabled : 1;
     };
+```
+```
  struct evconnlistener_event {
  	stuct evconnlistener base;
  	struct event listener;
- };</pre>
+ };
+```
 
 3. 设置lev->base的ops和cb等
 
 evconnlinstener\_cb是函数指针，evconnnlinstener_new的一个参数传入，作为linsten套接字可读时的callback
-<pre>
+```
 /**
    A callback that we invoke when a listener has a new connection.
-
    @param listener The evconnlistener
    @param fd The new file descriptor
    @param addr The source address of the connection
@@ -53,20 +57,23 @@ evconnlinstener\_cb是函数指针，evconnnlinstener_new的一个参数传入�
    @param user_arg the pointer passed to evconnlistener_new()
  */
 typedef void (*evconnlistener_cb)(struct evconnlistener *, evutil_socket_t, struct sockaddr *, int socklen, void *);
-
-</pre>
+```
 
 ops := evconnlinstener_ops，是一个结构体，结构体成员是函数指针
-<pre>struct evconnlistener_ops {
+```
+struct evconnlistener_ops {
 	int (*enable)(struct evconnlistener *);
 	int (*disable)(struct evconnlistener *);
 	void (*destroy)(struct evconnlistener *);
 	void (*shutdown)(struct evconnlistener *);
 	evutil_socket_t (*getfd)(struct evconnlistener *);
 	struct event_base *(*getbase)(struct evconnlistener *);
-};</pre>
+};
+```
+
 将ops设定为:
-<pre>static const struct evconnlistener_ops evconnlistener_event_ops = {
+```
+static const struct evconnlistener_ops evconnlistener_event_ops = {
 	event_listener_enable,
 	event_listener_disable,
 	event_listener_destroy,
@@ -74,10 +81,11 @@ ops := evconnlinstener_ops，是一个结构体，结构体成员是函数指针
 	event_listener_getfd,
 	event_listener_getbase
 };
-</pre>
+```
 
 4. 调用函数event_assign, 初始化event
-<pre>int
+```
+int
 event_assign(struct event *ev, struct event_base *base, evutil_socket_t fd, short events, void (*callback)(evutil_socket_t, short, void *), void *arg)
 {
 	if (!base)
@@ -125,13 +133,50 @@ event_assign(struct event *ev, struct event_base *base, evutil_socket_t fd, shor
 
 	return 0;
 }
-</pre>
+```
 
 5. 调用ops->enable，此处的ops->enable的作用是会将调用event_add函数将时间加入的事件队列中去
-<pre>static int
+```
+static int
 event_listener_enable(struct evconnlistener *lev)
 {
 	struct evconnlistener_event *lev_e =
 	    EVUTIL_UPCAST(lev, struct evconnlistener_event, base);
 	return event_add(&lev_e->listener, NULL);
-}</pre>
+}
+```
+
+</font>
+
+---
+
+```dot
+digraph G {
+	node[shape=box]
+	edge[]
+
+	subgraph cluster_evconnlistener_new_bind{
+		AStart[label=start]
+		bind [color=red]
+		AStart->createSocket->
+		setSocketKeepAlive->
+		bind->
+		evconnlistener_new->Return
+	}
+
+	subgraph cluster_evconnlistener_new {
+		callolc [label="new evconnlistener_event"]
+		evconnlistener_new->BStart
+		BStart[label=start]
+		BStart->listen->callolc->init->event_assign->evconnlistener_enable
+		evconnlistener_enable->evconnlistener_new [style=dashed,color=red]
+	}
+
+	descEvetnAssign [label="new a event, and init it with variables, like fd, events, callback functions",style=dashed,color=red,shape=box]
+	event_assign->descEvetnAssign[style=dashed]
+
+	descEvConnEnable[label="call event_listener_enable. In fact, it add listen event to table",style=dashed,color=red,shape=box]
+	evconnlistener_enable->descEvConnEnable [style=dashed]
+
+}
+```
