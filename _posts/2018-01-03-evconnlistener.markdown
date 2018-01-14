@@ -5,8 +5,6 @@ date:   2018-01-03 22:45:10 -0800
 categories: libevent
 ---
 
-<font face="微软雅黑">
-
 ## eventlistener
 
 ```
@@ -145,8 +143,6 @@ event_listener_enable(struct evconnlistener *lev)
 	return event_add(&lev_e->listener, NULL);
 }
 ```
-
-</font>
 
 ---
 
