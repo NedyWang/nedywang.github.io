@@ -26,10 +26,18 @@ github_username:  nedy_wang
 
 # Build settings
 markdown: kramdown
+kramdown:
+   input: GFM
+   hard_wrap: false
+future: true
+jailed: false
 theme: minima
 plugins:
   - jekyll-feed
-
+gems:
+  - jekyll-sitemap  #生成sitemap
+  - jekyll-mentions  #允许"@ somebody"
+  - jemoji  #允许标签
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
 # to override the default setting.

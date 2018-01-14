@@ -5,9 +5,8 @@ date:   2018-01-03 22:45:10 -0800
 categories: libevent
 ---
 
-<font face="微软雅黑">
-
 libevent以事件驱动为驱动的，在libevent中是事件是怎么表示的？ 具体的是以什么样的机构体和什么样的操作函数实现，与事件相关联的又要哪些概念？
+
 
 ####1. event结构体
 ```
@@ -41,13 +40,18 @@ struct event {
 	struct timeval ev_timeout;
 };
 ```
+
+
 1. event_callback是1个结构体，定义了event的callback函数应该有的数据成员
 2. ev_是1个联合体，可以是io事件，也可以是signal处理函数
 3. ev_events，定义所监听的事件，是可读事件还是可写事件
 4. ev_res，事件返回，已经就绪的事件
 5. 时间相关....//TODO
 
+
 **事件回调函数**
+
+
 ```
 struct event_callback {
 	TAILQ_ENTRY(event_callback) evcb_active_next;
@@ -65,9 +69,9 @@ struct event_callback {
 };
 ```
 
-
 #### 2. event\_add
 event\_add实际是调用函数event_add_nolock_去执行工作的。
+
 
 ```
 int
@@ -132,7 +136,7 @@ epoll->dispatch调用结束后，那么被触发的事件就会插入到active�
 
 ```dot
 digraph G {
-	node [shape=record]
+	node [shape=box]
 	start
 	event_base_dispatch [shape="box"]
 	event_base_loop [shape="box"]
