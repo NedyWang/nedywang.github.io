@@ -1,0 +1,78 @@
+---
+layout: post
+title:  "[libevent 源码剖析] 时间管理-最小堆"
+date:   2018-01-18 22:45:10 -0800
+categories: libevent
+---
+
+1. **min_heap**
+```
+typedef struct min_heap
+{
+	struct event** p;
+	unsigned n, a; //n := The number of min_heap elements; a:= The capacity of min_heap
+} min_heap_t;
+```
+a: min_heap的容量
+n: min_heap中元素的数量
+
+2. **min_heap_reserve_**
+```
+int min_heap_reserve_(min_heap_t* s, unsigned n)
+{
+	if (s->a < n)
+	{
+		struct event** p;
+		unsigned a = s->a ? s->a * 2 : 8;
+		if (a < n)
+			a = n;
+		if (!(p = (struct event**)mm_realloc(s->p, a * sizeof *p)))
+			return -1;
+		s->p = p;
+		s->a = a;
+	}
+	return 0;
+}
+```
+如果min_heap的容量小于所要存放的元素的数量的时候，进行扩容至原来的1倍。
+
+3. **min_heap_shift_up_**
+```
+void min_heap_shift_up_(min_heap_t* s, unsigned hole_index, struct event* e)
+{
+    unsigned parent = (hole_index - 1) / 2;
+    while (hole_index && min_heap_elem_greater(s->p[parent], e))
+    {
+	(s->p[hole_index] = s->p[parent])->ev_timeout_pos.min_heap_idx = hole_index;
+	hole_index = parent;
+	parent = (hole_index - 1) / 2;
+    }
+    (s->p[hole_index] = e)->ev_timeout_pos.min_heap_idx = hole_index;
+}
+```
+小根堆调整，hole_index开始上朔找hole，如果hole处的timeout是大于e的timeout时间，继续上朔，直到根节点或者hole的timeout值时大于e的timeout值，然后插入到hole处
+
+4. **min_heap_push_**
+```
+int min_heap_push_(min_heap_t* s, struct event* e)
+{
+	if (min_heap_reserve_(s, s->n + 1))
+		return -1;
+	min_heap_shift_up_(s, s->n++, e);
+	return 0;
+}
+```
+图：
+```dot
+digraph{
+  edge [penwidth=3]
+  node [penwidth=3, shape=box]
+  min_heap_push
+  min_heap_reserve
+  min_heap_push->min_heap_reserve
+  min_heap_reserve->ret [label="failure"]
+  min_heap_reserve->min_heap_shift_up_ [label="success"]
+  min_heap_shift_up_->ret
+
+}
+```
