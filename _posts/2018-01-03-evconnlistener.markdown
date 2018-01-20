@@ -153,7 +153,7 @@ digraph G {
 
 	subgraph cluster_evconnlistener_new_bind{
 		AStart[label=start]
-		bind [color=red]
+		bind [style=filled, penwidth=1, fillcolor=chartreuse]
 		AStart->createSocket->
 		setSocketKeepAlive->
 		bind->
