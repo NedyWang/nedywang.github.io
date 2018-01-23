@@ -9,7 +9,7 @@ categories: libevent
 
 ## 总体框架
 
-![](../pics/memcached_libevent.png)
+![](https://github.com/NedyWang/nedywang.github.io/blob/master/pics/memcached_libevent.png?raw=true)
 
 
 ## 初始化创建worker线程
