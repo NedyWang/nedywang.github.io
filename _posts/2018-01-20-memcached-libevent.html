@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+  <html>
+    <head>
+      <title>libevent used in memcached</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      
+      <link rel="stylesheet" href="file:///C:\Users\nedy_wang\.atom\packages\markdown-preview-enhanced\node_modules\@shd101wyy\mume\dependencies\katex\katex.min.css">
+      
+      
+      
+      
+      
+      
+      
+      
+      
+
+      <style> 
+      /**
+ * prism.js Github theme based on GitHub's theme.
+ * @author Sam Clarke
+ */
+code[class*="language-"],
+pre[class*="language-"] {
+  color: #333;
+  background: none;
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  text-align: left;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  word-wrap: normal;
+  line-height: 1.4;
+
+  -moz-tab-size: 8;
+  -o-tab-size: 8;
+  tab-size: 8;
+
+  -webkit-hyphens: none;
+  -moz-hyphens: none;
+  -ms-hyphens: none;
+  hyphens: none;
+}
+
+/* Code blocks */
+pre[class*="language-"] {
+  padding: .8em;
+  overflow: auto;
+  /* border: 1px solid #ddd; */
+  border-radius: 3px;
+  /* background: #fff; */
+  background: #f5f5f5;
+}
+
+/* Inline code */
+:not(pre) > code[class*="language-"] {
+  padding: .1em;
+  border-radius: .3em;
+  white-space: normal;
+  background: #f5f5f5;
+}
+
+.token.comment,
+.token.blockquote {
+  color: #969896;
+}
+
+.token.cdata {
+  color: #183691;
+}
+
+.token.doctype,
+.token.punctuation,
+.token.variable,
+.token.macro.property {
+  color: #333;
+}
+
+.token.operator,
+.token.important,
+.token.keyword,
+.token.rule,
+.token.builtin {
+  color: #a71d5d;
+}
+
+.token.string,
+.token.url,
+.token.regex,
+.token.attr-value {
+  color: #183691;
+}
+
+.token.property,
+.token.number,
+.token.boolean,
+.token.entity,
+.token.atrule,
+.token.constant,
+.token.symbol,
+.token.command,
+.token.code {
+  color: #0086b3;
+}
+
+.token.tag,
+.token.selector,
+.token.prolog {
+  color: #63a35c;
+}
+
+.token.function,
+.token.namespace,
+.token.pseudo-element,
+.token.class,
+.token.class-name,
+.token.pseudo-class,
+.token.id,
+.token.url-reference .token.variable,
+.token.attr-name {
+  color: #795da3;
+}
+
+.token.entity {
+  cursor: help;
+}
+
+.token.title,
+.token.title .token.punctuation {
+  font-weight: bold;
+  color: #1d3e81;
+}
+
+.token.list {
+  color: #ed6a43;
+}
+
+.token.inserted {
+  background-color: #eaffea;
+  color: #55a532;
+}
+
+.token.deleted {
+  background-color: #ffecec;
+  color: #bd2c00;
+}
+
+.token.bold {
+  font-weight: bold;
+}
+
+.token.italic {
+  font-style: italic;
+}
+
+
+/* JSON */
+.language-json .token.property {
+  color: #183691;
+}
+
+.language-markup .token.tag .token.punctuation {
+  color: #333;
+}
+
+/* CSS */
+code.language-css,
+.language-css .token.function {
+  color: #0086b3;
+}
+
+/* YAML */
+.language-yaml .token.atrule {
+  color: #63a35c;
+}
+
+code.language-yaml {
+  color: #183691;
+}
+
+/* Ruby */
+.language-ruby .token.function {
+  color: #333;
+}
+
+/* Markdown */
+.language-markdown .token.url {
+  color: #795da3;
+}
+
+/* Makefile */
+.language-makefile .token.symbol {
+  color: #795da3;
+}
+
+.language-makefile .token.variable {
+  color: #183691;
+}
+
+.language-makefile .token.builtin {
+  color: #0086b3;
+}
+
+/* Bash */
+.language-bash .token.keyword {
+  color: #0086b3;
+}html body{font-family:"Helvetica Neue",Helvetica,"Segoe UI",Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ul,html body>ol{margin-bottom:16px}html body ul,html body ol{padding-left:2em}html body ul.no-list,html body ol.no-list{padding:0;list-style-type:none}html body ul ul,html body ul ol,html body ol ol,html body ol ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:bold;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:bold}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em !important;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::before,html body code::after{letter-spacing:-0.2em;content:"\00a0"}html body pre>code{padding:0;margin:0;font-size:.85em !important;word-break:normal;white-space:pre;background:transparent;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;font-size:.85em !important;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:before,html body pre tt:before,html body pre code:after,html body pre tt:after{content:normal}html body p,html body blockquote,html body ul,html body ol,html body dl,html body pre{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body pre,html body code{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview .pagebreak,.markdown-preview .newpage{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center !important}.markdown-preview:not([for="preview"]) .code-chunk .btn-group{display:none}.markdown-preview:not([for="preview"]) .code-chunk .status{display:none}.markdown-preview:not([for="preview"]) .code-chunk .output-div{margin-bottom:16px}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,0.66);border:4px solid rgba(150,150,150,0.66);background-clip:content-box}html body[for="html-export"]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for="html-export"]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0}@media screen and (min-width:914px){html body[for="html-export"]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px)}}@media screen and (max-width:914px){html body[for="html-export"]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for="html-export"]:not([data-presentation-mode]) .markdown-preview{font-size:14px !important;padding:1em}}@media print{html body[for="html-export"]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for="html-export"]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,0.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,0.66);border:4px solid rgba(150,150,150,0.66);background-clip:content-box}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc ul{padding:0 1.6em;margin-top:.8em}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc li{margin-bottom:.8em}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc ul{list-style-type:none}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% -  300px);padding:2em calc(50% - 457px -  150px);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for="html-export"]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for="html-export"]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+ 
+      </style>
+    </head>
+    <body for="html-export">
+      <div class="mume markdown-preview   ">
+      <h2 class="mume-header" id="%E6%80%BB%E4%BD%93%E6%A1%86%E6%9E%B6">总体框架</h2>
+
+<p><img src="https://github.com/NedyWang/nedywang.github.io/blob/master/pics/memcached_libevent.png?raw=true" alt=""></p>
+<h2 class="mume-header" id="%E5%88%9D%E5%A7%8B%E5%8C%96%E5%88%9B%E5%BB%BAworker%E7%BA%BF%E7%A8%8B">初始化创建worker线程</h2>
+
+<p>调用函数memcached_thread_init实现</p>
+<pre class="language-">/**
+ * &#x7533;&#x8BF7;n&#x4E2A;libevent&#x7EBF;&#x7A0B;&#xFF0C;&#x521D;&#x59CB;&#x5316;&#xFF0C;&#x5E76;&#x4E14;&#x521B;&#x5EFA;n&#x4E2A;&#x5B50;&#x7EBF;&#x7A0B;
+ * @nthreads worker&#x7EBF;&#x7A0B;&#x7684;&#x6570;&#x91CF;
+ * @arg
+ */
+void memcached_thread_init(int nthreads, void *arg)
+</pre>
+<p><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.40.1 (20161225.0304)
+ -->
+<!-- Title: memcachedThdInit Pages: 1 -->
+<svg width="471pt" height="425pt" viewBox="0.00 0.00 470.69 424.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 420.8)">
+<title>memcachedThdInit</title>
+<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-420.8 466.6947,-420.8 466.6947,4 -4,4"></polygon>
+<!-- A -->
+<g id="node1" class="node">
+<title>A</title>
+<ellipse fill="none" stroke="#000000" stroke-width="2" cx="265.614" cy="-398.8" rx="27.8228" ry="18"></ellipse>
+<text text-anchor="middle" x="265.614" y="-394.6" font-family="Times,serif" font-size="14.00" fill="#000000">start</text>
+</g>
+<!-- B -->
+<g id="node2" class="node">
+<title>B</title>
+<polygon fill="none" stroke="#000000" stroke-width="2" points="332.7797,-343.8 198.4483,-343.8 198.4483,-307.8 332.7797,-307.8 332.7797,-343.8"></polygon>
+<text text-anchor="middle" x="265.614" y="-321.6" font-family="Times,serif" font-size="14.00" fill="#000000">allocate related locks</text>
+</g>
+<!-- A&#45;&gt;B -->
+<g id="edge1" class="edge">
+<title>A&#45;&gt;B</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-dasharray="5,2" d="M265.614,-380.7551C265.614,-372.6828 265.614,-362.9764 265.614,-353.9817"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="269.1141,-353.8903 265.614,-343.8904 262.1141,-353.8904 269.1141,-353.8903"></polygon>
+</g>
+<!-- C -->
+<g id="node3" class="node">
+<title>C</title>
+<polygon fill="none" stroke="#000000" stroke-width="2" points="306.8245,-270.8 224.4035,-270.8 224.4035,-234.8 306.8245,-234.8 306.8245,-270.8"></polygon>
+<text text-anchor="middle" x="265.614" y="-248.6" font-family="Times,serif" font-size="14.00" fill="#000000">i &lt; nthreads</text>
+</g>
+<!-- B&#45;&gt;C -->
+<g id="edge2" class="edge">
+<title>B&#45;&gt;C</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-dasharray="5,2" d="M265.614,-307.7551C265.614,-299.6828 265.614,-289.9764 265.614,-280.9817"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="269.1141,-280.8903 265.614,-270.8904 262.1141,-280.8904 269.1141,-280.8903"></polygon>
+</g>
+<!-- D -->
+<g id="node4" class="node">
+<title>D</title>
+<polygon fill="none" stroke="#000000" stroke-width="2" points="237.3421,-182 -.1141,-182 -.1141,-146 237.3421,-146 237.3421,-182"></polygon>
+<text text-anchor="middle" x="118.614" y="-159.8" font-family="Times,serif" font-size="14.00" fill="#000000">init pipe, assign it to sendfd and recv fd</text>
+</g>
+<!-- C&#45;&gt;D -->
+<g id="edge3" class="edge">
+<title>C&#45;&gt;D</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-dasharray="5,2" d="M235.5116,-234.6157C212.8441,-220.9227 181.5969,-202.0468 157.1113,-187.2555"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="158.7938,-184.1829 148.4246,-182.008 155.1743,-190.1745 158.7938,-184.1829"></polygon>
+<text text-anchor="middle" x="214.9436" y="-204.2" font-family="Times,serif" font-size="14.00" fill="#000000">yes</text>
+</g>
+<!-- F -->
+<g id="node6" class="node">
+<title>F</title>
+<polygon fill="none" stroke="#000000" stroke-width="2" points="455.6582,-182 293.5698,-182 293.5698,-146 455.6582,-146 455.6582,-182"></polygon>
+<text text-anchor="middle" x="374.614" y="-159.8" font-family="Times,serif" font-size="14.00" fill="#000000">loop to call create_worker</text>
+</g>
+<!-- C&#45;&gt;F -->
+<g id="edge6" class="edge">
+<title>C&#45;&gt;F</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-dasharray="5,2" d="M287.9348,-234.6157C304.2464,-221.327 326.5496,-203.1571 344.4472,-188.5763"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="346.7808,-191.1896 352.323,-182.16 342.3595,-185.7626 346.7808,-191.1896"></polygon>
+<text text-anchor="middle" x="336.614" y="-204.2" font-family="Times,serif" font-size="14.00" fill="#000000">no</text>
+</g>
+<!-- E -->
+<g id="node5" class="node">
+<title>E</title>
+<polygon fill="none" stroke="#000000" stroke-width="2" points="245.3549,-109 133.8731,-109 133.8731,-73 245.3549,-73 245.3549,-109"></polygon>
+<text text-anchor="middle" x="189.614" y="-86.8" font-family="Times,serif" font-size="14.00" fill="#000000">call setup_thread</text>
+</g>
+<!-- D&#45;&gt;E -->
+<g id="edge4" class="edge">
+<title>D&#45;&gt;E</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-dasharray="5,2" d="M136.1646,-145.9551C144.869,-137.0054 155.5272,-126.047 165.0296,-116.2769"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="167.5561,-118.6992 172.0193,-109.0904 162.538,-113.8187 167.5561,-118.6992"></polygon>
+</g>
+<!-- E&#45;&gt;C -->
+<g id="edge5" class="edge">
+<title>E&#45;&gt;C</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-dasharray="5,2" d="M214.7939,-109.2324C226.2755,-118.8757 238.9822,-131.68 246.614,-146 259.6304,-170.4234 263.9638,-201.9994 265.2939,-224.4684"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="261.8071,-224.8542 265.7304,-234.6958 268.8007,-224.5556 261.8071,-224.8542"></polygon>
+</g>
+<!-- W -->
+<g id="node7" class="node">
+<title>W</title>
+<polygon fill="none" stroke="#000000" stroke-width="2" points="462.7755,-109 286.4525,-109 286.4525,-73 462.7755,-73 462.7755,-109"></polygon>
+<text text-anchor="middle" x="374.614" y="-86.8" font-family="Times,serif" font-size="14.00" fill="#000000">wait_for_thread_registration</text>
+</g>
+<!-- F&#45;&gt;W -->
+<g id="edge7" class="edge">
+<title>F&#45;&gt;W</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-dasharray="5,2" d="M374.614,-145.9551C374.614,-137.8828 374.614,-128.1764 374.614,-119.1817"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="378.1141,-119.0903 374.614,-109.0904 371.1141,-119.0904 378.1141,-119.0903"></polygon>
+</g>
+<!-- End -->
+<g id="node8" class="node">
+<title>End</title>
+<ellipse fill="none" stroke="#000000" stroke-width="2" cx="374.614" cy="-18" rx="27" ry="18"></ellipse>
+<text text-anchor="middle" x="374.614" y="-13.8" font-family="Times,serif" font-size="14.00" fill="#000000">End</text>
+</g>
+<!-- W&#45;&gt;End -->
+<g id="edge8" class="edge">
+<title>W&#45;&gt;End</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-dasharray="5,2" d="M374.614,-72.9551C374.614,-64.8828 374.614,-55.1764 374.614,-46.1817"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="378.1141,-46.0903 374.614,-36.0904 371.1141,-46.0904 378.1141,-46.0903"></polygon>
+</g>
+</g>
+</svg>
+</p>
+<h2 class="mume-header" id="libevent_thread">LIBEVENT_THREAD</h2>
+
+<p>libevent线程结构体<br>
+需要理解的是notify_event和notify_received_fd/notify_send_fd<br>
+框架图的worker线程模块，notify_event事件是和notify_received_fd绑定的，notify_received_fd是pipe的读端，notify_send_fd是pipe的写端，可读时说明主线程是有新连接到达，然后通知workder线程去new_conn_queue中取连接。</p>
+<pre class="language-">typedef struct {
+    pthread_t thread_id;        /* unique ID of this thread */
+    struct event_base *base;    /* libevent handle this thread uses */
+    struct event notify_event;  /* listen event for notify pipe */
+    int notify_receive_fd;      /* receiving end of notify pipe */
+    int notify_send_fd;         /* sending end of notify pipe */
+    struct thread_stats stats;  /* Stats generated by this thread */
+    struct conn_queue *new_conn_queue; /* queue of new connections to handle */
+    cache_t *suffix_cache;      /* suffix cache */
+#ifdef EXTSTORE
+    cache_t *io_cache;          /* IO objects */
+    void *storage;              /* data object for storage system */
+#endif
+    logger *l;                  /* logger buffer */
+    void *lru_bump_buf;         /* async LRU bump buffer */
+} LIBEVENT_THREAD;
+</pre>
+<h2 class="mume-header" id="setup_thread">setup_thread</h2>
+
+<pre class="language-">/**
+ * &#x8BBE;&#x7F6E;me&#x7684;&#x4FE1;&#x606F;
+ * @me LIBEVENT_THREAD
+ */
+static void setup_thread(LIBEVENT_THREAD *me)
+</pre>
+<p><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.40.1 (20161225.0304)
+ -->
+<!-- Title: setup_thread Pages: 1 -->
+<svg width="244pt" height="332pt" viewBox="0.00 0.00 244.06 332.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 328)">
+<title>setup_thread</title>
+<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-328 240.0562,-328 240.0562,4 -4,4"></polygon>
+<!-- A -->
+<g id="node1" class="node">
+<title>A</title>
+<polygon fill="none" stroke="#000000" stroke-width="2" points="170.8285,-324 65.2277,-324 65.2277,-288 170.8285,-288 170.8285,-324"></polygon>
+<text text-anchor="middle" x="118.0281" y="-301.8" font-family="Times,serif" font-size="14.00" fill="#000000">分配event_base</text>
+</g>
+<!-- B -->
+<g id="node2" class="node">
+<title>B</title>
+<polygon fill="none" stroke="#000000" stroke-width="2" points="236.0843,-252 -.0281,-252 -.0281,-216 236.0843,-216 236.0843,-252"></polygon>
+<text text-anchor="middle" x="118.0281" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">将notify_receive_fd和notify_event绑定</text>
+</g>
+<!-- A&#45;&gt;B -->
+<g id="edge1" class="edge">
+<title>A&#45;&gt;B</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-dasharray="5,2" d="M118.0281,-287.8314C118.0281,-280.131 118.0281,-270.9743 118.0281,-262.4166"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="121.5282,-262.4132 118.0281,-252.4133 114.5282,-262.4133 121.5282,-262.4132"></polygon>
+</g>
+<!-- C -->
+<g id="node3" class="node">
+<title>C</title>
+<polygon fill="none" stroke="#000000" stroke-width="2" points="230.3046,-180 5.7516,-180 5.7516,-144 230.3046,-144 230.3046,-180"></polygon>
+<text text-anchor="middle" x="118.0281" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">将notify_event注册到event_base中去</text>
+</g>
+<!-- B&#45;&gt;C -->
+<g id="edge2" class="edge">
+<title>B&#45;&gt;C</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-dasharray="5,2" d="M118.0281,-215.8314C118.0281,-208.131 118.0281,-198.9743 118.0281,-190.4166"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="121.5282,-190.4132 118.0281,-180.4133 114.5282,-190.4133 121.5282,-190.4132"></polygon>
+</g>
+<!-- D -->
+<g id="node4" class="node">
+<title>D</title>
+<polygon fill="none" stroke="#000000" stroke-width="2" points="192.4931,-108 43.5631,-108 43.5631,-72 192.4931,-72 192.4931,-108"></polygon>
+<text text-anchor="middle" x="118.0281" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">初始化new_conn_queue</text>
+</g>
+<!-- C&#45;&gt;D -->
+<g id="edge3" class="edge">
+<title>C&#45;&gt;D</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-dasharray="5,2" d="M118.0281,-143.8314C118.0281,-136.131 118.0281,-126.9743 118.0281,-118.4166"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="121.5282,-118.4132 118.0281,-108.4133 114.5282,-118.4133 121.5282,-118.4132"></polygon>
+</g>
+<!-- E -->
+<g id="node5" class="node">
+<title>E</title>
+<polygon fill="none" stroke="#000000" stroke-width="2" points="179.0439,-36 57.0123,-36 57.0123,0 179.0439,0 179.0439,-36"></polygon>
+<text text-anchor="middle" x="118.0281" y="-13.8" font-family="Times,serif" font-size="14.00" fill="#000000">初始化suffix_cache</text>
+</g>
+<!-- D&#45;&gt;E -->
+<g id="edge4" class="edge">
+<title>D&#45;&gt;E</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-dasharray="5,2" d="M118.0281,-71.8314C118.0281,-64.131 118.0281,-54.9743 118.0281,-46.4166"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="121.5282,-46.4132 118.0281,-36.4133 114.5282,-46.4133 121.5282,-46.4132"></polygon>
+</g>
+</g>
+</svg>
+</p>
+<h2 class="mume-header" id="worker_libevent">worker_libevent</h2>
+
+<p>进入event_base主事件循环</p>
+<pre class="language-">/*
+ * Worker thread: main event loop
+ */
+static void *worker_libevent(void *arg) {
+    LIBEVENT_THREAD *me = arg;
+
+    /* Any per-thread setup can happen here; memcached_thread_init() will block until
+     * all threads have finished initializing.
+     */
+    me-&gt;l = logger_create();
+    me-&gt;lru_bump_buf = item_lru_bump_buf_create();
+    if (me-&gt;l == NULL || me-&gt;lru_bump_buf == NULL) {
+        abort();
+    }
+
+    if (settings.drop_privileges) {
+        drop_worker_privileges();
+    }
+
+    register_thread_initialized();
+
+    event_base_loop(me-&gt;base, 0);
+    return NULL;
+</pre>
+<h2 class="mume-header" id="create_worker">create_worker</h2>
+
+<p>memcached_thread_init中对create_worker的调用形式：</p>
+<pre class="language-">create_worker(worker_libevent, &amp;threads[i])
+</pre>
+<p>工作函数是worer_libevent</p>
+<p>create_worker只是将pthread_create包装了下</p>
+<pre class="language-">/**
+ * Creates a worker thread.
+ */
+static void create_worker(void *(*func)(void *), void *arg) {
+    pthread_attr_t  attr;
+    int             ret;
+
+    pthread_attr_init(&amp;attr);
+
+    if ((ret = pthread_create(&amp;((LIBEVENT_THREAD*)arg)-&gt;thread_id, &amp;attr, func, arg)) != 0) {
+        fprintf(stderr, &quot;Can&apos;t create thread: %s\n&quot;,
+                strerror(ret));
+        exit(1);
+    }
+}
+</pre>
+<h2 class="mume-header" id="new_conn_queue">new_conn_queue</h2>
+
+<p>一个简单的单链表</p>
+<pre class="language-">typedef struct conn_queue_item CQ_ITEM;
+
+struct conn_queue_item {
+    int               sfd;
+    enum conn_states  init_state;
+    int               event_flags;
+    int               read_buffer_size;
+    enum network_transport     transport;
+    enum conn_queue_item_modes mode;
+    conn *c;
+    CQ_ITEM          *next;
+};
+
+typedef struct conn_queue CQ;
+struct conn_queue {
+    CQ_ITEM *head;
+    CQ_ITEM *tail;
+    pthread_mutex_t lock;
+};
+</pre>
+<p>conn_conn是单链表，head指向链表头，tail指向链表尾部，因为链表涉及到多线程访问，因此设置了个lock。</p>
+<p>conn_queue_item是对主线程accept的connection的包装。</p>
+
+      </div>
+      <div class="md-sidebar-toc"><ul>
+<li><a href="#%E6%80%BB%E4%BD%93%E6%A1%86%E6%9E%B6">总体框架</a></li>
+<li><a href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E5%88%9B%E5%BB%BAworker%E7%BA%BF%E7%A8%8B">初始化创建worker线程</a></li>
+<li><a href="#libevent_thread">LIBEVENT_THREAD</a></li>
+<li><a href="#setup_thread">setup_thread</a></li>
+<li><a href="#worker_libevent">worker_libevent</a></li>
+<li><a href="#create_worker">create_worker</a></li>
+<li><a href="#new_conn_queue">new_conn_queue</a></li>
+</ul>
+</div>
+      <a id="sidebar-toc-btn">≡</a>
+    </body>
+    
+    
+    
+    
+    
+    <script>
+(function bindTaskListEvent() {
+  var taskListItemCheckboxes = document.body.getElementsByClassName('task-list-item-checkbox')
+  for (var i = 0; i < taskListItemCheckboxes.length; i++) {
+    var checkbox = taskListItemCheckboxes[i]
+    var li = checkbox.parentElement
+    if (li.tagName !== 'LI') li = li.parentElement
+    if (li.tagName === 'LI') {
+      li.classList.add('task-list-item')
+    }
+  }
+}())    
+</script>
+    
+<script>
+
+var sidebarTOCBtn = document.getElementById('sidebar-toc-btn')
+sidebarTOCBtn.addEventListener('click', function(event) {
+  event.stopPropagation()
+  if (document.body.hasAttribute('html-show-sidebar-toc')) {
+    document.body.removeAttribute('html-show-sidebar-toc')
+  } else {
+    document.body.setAttribute('html-show-sidebar-toc', true)
+  }
+})
+</script>
+      
+  </html>

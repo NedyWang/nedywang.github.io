@@ -1,11 +1,9 @@
 ---
 layout: post
-title:  "memcached libevent"
+title:  "libevent used in memcached"
 date:   2018-01-20 16:49:10 -0800
 categories: libevent
 ---
-
-# libevent在memcached中的实际使用
 
 ## 总体框架
 
