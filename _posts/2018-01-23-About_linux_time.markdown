@@ -8,7 +8,7 @@ categories: linux programing
 
 ## tm
 
-struct represent more detail linux time
+ broken-down time which is a representation separated into year, month, day, etc
 
 ```
 struct tm {
