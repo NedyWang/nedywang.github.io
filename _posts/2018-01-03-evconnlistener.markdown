@@ -176,3 +176,7 @@ digraph G {
 
 }
 ```
+
+---
+<font color=red>要深入理解的一个关键点是，libevent是以event为中心的</font>
+这是个关键点，理解的时候要注意这个

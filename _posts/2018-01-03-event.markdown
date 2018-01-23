@@ -154,3 +154,21 @@ digraph G {
 	done->event_base_loop [label="no"]
 }
 ```
+
+```dot
+digraph A {
+	rankdir=LR;
+	node [fontname = "Verdana", fontsize = 10, color="skyblue", shape="record"];
+	event_io_map [ label="{<head>...|<evmap_io>evmap_io|...}" ];
+
+	evmap_io[label="{<events>events|nread|nwrite|nclose}"]
+
+	edge [fontname = "Verdana", fontsize = 10, color="crimson", style="solid"]
+	event_io_map:evmap_io -> evmap_io:events
+
+	events [label="{<head>fd|callback|next|...}"]
+	evmap_io:events->events
+
+	events->events:head [style="dashed", color="forestgreen"];
+}
+```
