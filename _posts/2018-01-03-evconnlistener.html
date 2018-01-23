@@ -1,0 +1,581 @@
+---
+layout: post
+title:  "[libevent 源码剖析] eventlistener"
+date:   2018-01-03 22:45:10 -0800
+categories: libevent
+---
+
+<!DOCTYPE html>
+  <html>
+    <head>
+      <title>[libevent 源码剖析] eventlistener</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+      <link rel="stylesheet" href="file:///C:\Users\Administrator\.atom\packages\markdown-preview-enhanced\node_modules\@shd101wyy\mume\dependencies\katex\katex.min.css">
+
+
+
+
+
+
+
+
+
+
+      <style>
+      /**
+ * prism.js Github theme based on GitHub's theme.
+ * @author Sam Clarke
+ */
+code[class*="language-"],
+pre[class*="language-"] {
+  color: #333;
+  background: none;
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  text-align: left;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  word-wrap: normal;
+  line-height: 1.4;
+
+  -moz-tab-size: 8;
+  -o-tab-size: 8;
+  tab-size: 8;
+
+  -webkit-hyphens: none;
+  -moz-hyphens: none;
+  -ms-hyphens: none;
+  hyphens: none;
+}
+
+/* Code blocks */
+pre[class*="language-"] {
+  padding: .8em;
+  overflow: auto;
+  /* border: 1px solid #ddd; */
+  border-radius: 3px;
+  /* background: #fff; */
+  background: #f5f5f5;
+}
+
+/* Inline code */
+:not(pre) > code[class*="language-"] {
+  padding: .1em;
+  border-radius: .3em;
+  white-space: normal;
+  background: #f5f5f5;
+}
+
+.token.comment,
+.token.blockquote {
+  color: #969896;
+}
+
+.token.cdata {
+  color: #183691;
+}
+
+.token.doctype,
+.token.punctuation,
+.token.variable,
+.token.macro.property {
+  color: #333;
+}
+
+.token.operator,
+.token.important,
+.token.keyword,
+.token.rule,
+.token.builtin {
+  color: #a71d5d;
+}
+
+.token.string,
+.token.url,
+.token.regex,
+.token.attr-value {
+  color: #183691;
+}
+
+.token.property,
+.token.number,
+.token.boolean,
+.token.entity,
+.token.atrule,
+.token.constant,
+.token.symbol,
+.token.command,
+.token.code {
+  color: #0086b3;
+}
+
+.token.tag,
+.token.selector,
+.token.prolog {
+  color: #63a35c;
+}
+
+.token.function,
+.token.namespace,
+.token.pseudo-element,
+.token.class,
+.token.class-name,
+.token.pseudo-class,
+.token.id,
+.token.url-reference .token.variable,
+.token.attr-name {
+  color: #795da3;
+}
+
+.token.entity {
+  cursor: help;
+}
+
+.token.title,
+.token.title .token.punctuation {
+  font-weight: bold;
+  color: #1d3e81;
+}
+
+.token.list {
+  color: #ed6a43;
+}
+
+.token.inserted {
+  background-color: #eaffea;
+  color: #55a532;
+}
+
+.token.deleted {
+  background-color: #ffecec;
+  color: #bd2c00;
+}
+
+.token.bold {
+  font-weight: bold;
+}
+
+.token.italic {
+  font-style: italic;
+}
+
+
+/* JSON */
+.language-json .token.property {
+  color: #183691;
+}
+
+.language-markup .token.tag .token.punctuation {
+  color: #333;
+}
+
+/* CSS */
+code.language-css,
+.language-css .token.function {
+  color: #0086b3;
+}
+
+/* YAML */
+.language-yaml .token.atrule {
+  color: #63a35c;
+}
+
+code.language-yaml {
+  color: #183691;
+}
+
+/* Ruby */
+.language-ruby .token.function {
+  color: #333;
+}
+
+/* Markdown */
+.language-markdown .token.url {
+  color: #795da3;
+}
+
+/* Makefile */
+.language-makefile .token.symbol {
+  color: #795da3;
+}
+
+.language-makefile .token.variable {
+  color: #183691;
+}
+
+.language-makefile .token.builtin {
+  color: #0086b3;
+}
+
+/* Bash */
+.language-bash .token.keyword {
+  color: #0086b3;
+}html body{font-family:"Helvetica Neue",Helvetica,"Segoe UI",Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ul,html body>ol{margin-bottom:16px}html body ul,html body ol{padding-left:2em}html body ul.no-list,html body ol.no-list{padding:0;list-style-type:none}html body ul ul,html body ul ol,html body ol ol,html body ol ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:bold;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:bold}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em !important;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::before,html body code::after{letter-spacing:-0.2em;content:"\00a0"}html body pre>code{padding:0;margin:0;font-size:.85em !important;word-break:normal;white-space:pre;background:transparent;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;font-size:.85em !important;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:before,html body pre tt:before,html body pre code:after,html body pre tt:after{content:normal}html body p,html body blockquote,html body ul,html body ol,html body dl,html body pre{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body pre,html body code{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview .pagebreak,.markdown-preview .newpage{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center !important}.markdown-preview:not([for="preview"]) .code-chunk .btn-group{display:none}.markdown-preview:not([for="preview"]) .code-chunk .status{display:none}.markdown-preview:not([for="preview"]) .code-chunk .output-div{margin-bottom:16px}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,0.66);border:4px solid rgba(150,150,150,0.66);background-clip:content-box}html body[for="html-export"]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for="html-export"]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0}@media screen and (min-width:914px){html body[for="html-export"]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px)}}@media screen and (max-width:914px){html body[for="html-export"]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for="html-export"]:not([data-presentation-mode]) .markdown-preview{font-size:14px !important;padding:1em}}@media print{html body[for="html-export"]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for="html-export"]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,0.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,0.66);border:4px solid rgba(150,150,150,0.66);background-clip:content-box}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc ul{padding:0 1.6em;margin-top:.8em}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc li{margin-bottom:.8em}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc ul{list-style-type:none}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% -  300px);padding:2em calc(50% - 457px -  150px);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for="html-export"]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for="html-export"]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+
+      </style>
+    </head>
+    <body for="html-export">
+      <div class="mume markdown-preview   ">
+      <h2 class="mume-header" id="eventlistener">eventlistener</h2>
+
+<pre class="language-">struct evconnlistener *
+evconnlistener_new(
+	struct event_base *base,
+	evconnlistener_cb cb,
+	void *ptr,
+	unsigned flags,
+	int backlog,
+	evutil_socket_t fd)
+</pre>
+<ol>
+<li>调用listen，将fd变为被动套接字</li>
+<li>分配evconnlistener_event ----&gt;lev</li>
+</ol>
+<hr>
+<pre class="language-">struct evconnlistener {
+    sconst struct evconnlistener_ops *ops&#xFF1B;
+    void *lock;
+    evconnlistener_cb cb;
+    evconnlistener_errorcb errorcb;
+    void *user_data;
+    unsigned flags;
+    short refcnt;
+    int accept4_flags;
+    unsigned enabled : 1;
+    };
+</pre>
+<pre class="language-"> struct evconnlistener_event {
+ 	stuct evconnlistener base;
+ 	struct event listener;
+ };
+</pre>
+<ol start="3">
+<li>设置lev-&gt;base的ops和cb等</li>
+</ol>
+<p>evconnlinstener_cb是函数指针，evconnnlinstener_new的一个参数传入，作为linsten套接字可读时的callback</p>
+<pre class="language-">/**
+   A callback that we invoke when a listener has a new connection.
+   @param listener The evconnlistener
+   @param fd The new file descriptor
+   @param addr The source address of the connection
+   @param socklen The length of addr
+   @param user_arg the pointer passed to evconnlistener_new()
+ */
+typedef void (*evconnlistener_cb)(struct evconnlistener *, evutil_socket_t, struct sockaddr *, int socklen, void *);
+</pre>
+<p>ops := evconnlinstener_ops，是一个结构体，结构体成员是函数指针</p>
+<pre class="language-">struct evconnlistener_ops {
+	int (*enable)(struct evconnlistener *);
+	int (*disable)(struct evconnlistener *);
+	void (*destroy)(struct evconnlistener *);
+	void (*shutdown)(struct evconnlistener *);
+	evutil_socket_t (*getfd)(struct evconnlistener *);
+	struct event_base *(*getbase)(struct evconnlistener *);
+};
+</pre>
+<p>将ops设定为:</p>
+<pre class="language-">static const struct evconnlistener_ops evconnlistener_event_ops = {
+	event_listener_enable,
+	event_listener_disable,
+	event_listener_destroy,
+	NULL, /* shutdown */
+	event_listener_getfd,
+	event_listener_getbase
+};
+</pre>
+<ol start="4">
+<li>调用函数event_assign, 初始化event</li>
+</ol>
+<pre class="language-">int
+event_assign(struct event *ev, struct event_base *base, evutil_socket_t fd, short events, void (*callback)(evutil_socket_t, short, void *), void *arg)
+{
+	if (!base)
+		base = current_base;
+	if (arg == &amp;event_self_cbarg_ptr_)
+		arg = ev;
+
+	event_debug_assert_not_added_(ev);
+
+	ev-&gt;ev_base = base;
+
+	ev-&gt;ev_callback = callback;
+	ev-&gt;ev_arg = arg;
+	ev-&gt;ev_fd = fd;
+	ev-&gt;ev_events = events;
+	ev-&gt;ev_res = 0;
+	ev-&gt;ev_flags = EVLIST_INIT;
+	ev-&gt;ev_ncalls = 0;
+	ev-&gt;ev_pncalls = NULL;
+
+	if (events &amp; EV_SIGNAL) {
+		if ((events &amp; (EV_READ|EV_WRITE|EV_CLOSED)) != 0) {
+			event_warnx(&quot;%s: EV_SIGNAL is not compatible with &quot;
+			    &quot;EV_READ, EV_WRITE or EV_CLOSED&quot;, __func__);
+			return -1;
+		}
+		ev-&gt;ev_closure = EV_CLOSURE_EVENT_SIGNAL;
+	} else {
+		if (events &amp; EV_PERSIST) {
+			evutil_timerclear(&amp;ev-&gt;ev_io_timeout);
+			ev-&gt;ev_closure = EV_CLOSURE_EVENT_PERSIST;
+		} else {
+			ev-&gt;ev_closure = EV_CLOSURE_EVENT;
+		}
+	}
+
+	min_heap_elem_init_(ev);
+
+	if (base != NULL) {
+		/* by default, we put new events into the middle priority */
+		ev-&gt;ev_pri = base-&gt;nactivequeues / 2;
+	}
+
+	event_debug_note_setup_(ev);
+
+	return 0;
+}
+</pre>
+<ol start="5">
+<li>调用ops-&gt;enable，此处的ops-&gt;enable的作用是会将调用event_add函数将时间加入的事件队列中去</li>
+</ol>
+<pre class="language-">static int
+event_listener_enable(struct evconnlistener *lev)
+{
+	struct evconnlistener_event *lev_e =
+	    EVUTIL_UPCAST(lev, struct evconnlistener_event, base);
+	return event_add(&amp;lev_e-&gt;listener, NULL);
+}
+</pre>
+<hr>
+<p><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.40.1 (20161225.0304)
+ -->
+<!-- Title: G Pages: 1 -->
+<svg width="710pt" height="852pt" viewBox="0.00 0.00 709.63 852.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 848)">
+<title>G</title>
+<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-848 705.631,-848 705.631,4 -4,4"></polygon>
+<g id="clust1" class="cluster">
+<title>cluster_evconnlistener_new_bind</title>
+<polygon fill="none" stroke="#000000" points="275.5513,-424 275.5513,-836 421.5513,-836 421.5513,-424 275.5513,-424"></polygon>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_evconnlistener_new</title>
+<polygon fill="none" stroke="#000000" points="429.5513,-64 429.5513,-476 607.5513,-476 607.5513,-64 429.5513,-64"></polygon>
+</g>
+<!-- AStart -->
+<g id="node1" class="node">
+<title>AStart</title>
+<polygon fill="none" stroke="#000000" stroke-width="3" points="375.5513,-828 321.5513,-828 321.5513,-792 375.5513,-792 375.5513,-828"></polygon>
+<text text-anchor="middle" x="348.5513" y="-805.8" font-family="Times,serif" font-size="14.00" fill="#000000">start</text>
+</g>
+<!-- createSocket -->
+<g id="node3" class="node">
+<title>createSocket</title>
+<polygon fill="none" stroke="#000000" stroke-width="3" points="392.0647,-756 305.0379,-756 305.0379,-720 392.0647,-720 392.0647,-756"></polygon>
+<text text-anchor="middle" x="348.5513" y="-733.8" font-family="Times,serif" font-size="14.00" fill="#000000">createSocket</text>
+</g>
+<!-- AStart&#45;&gt;createSocket -->
+<g id="edge1" class="edge">
+<title>AStart&#45;&gt;createSocket</title>
+<path fill="none" stroke="#000000" stroke-width="2" d="M348.5513,-791.8314C348.5513,-784.131 348.5513,-774.9743 348.5513,-766.4166"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="352.0514,-766.4132 348.5513,-756.4133 345.0514,-766.4133 352.0514,-766.4132"></polygon>
+</g>
+<!-- bind -->
+<g id="node2" class="node">
+<title>bind</title>
+<polygon fill="#7fff00" stroke="#000000" points="375.5513,-612 321.5513,-612 321.5513,-576 375.5513,-576 375.5513,-612"></polygon>
+<text text-anchor="middle" x="348.5513" y="-589.8" font-family="Times,serif" font-size="14.00" fill="#000000">bind</text>
+</g>
+<!-- evconnlistener_new -->
+<g id="node5" class="node">
+<title>evconnlistener_new</title>
+<polygon fill="none" stroke="#000000" stroke-width="3" points="413.5079,-540 285.5947,-540 285.5947,-504 413.5079,-504 413.5079,-540"></polygon>
+<text text-anchor="middle" x="349.5513" y="-517.8" font-family="Times,serif" font-size="14.00" fill="#000000">evconnlistener_new</text>
+</g>
+<!-- bind&#45;&gt;evconnlistener_new -->
+<g id="edge4" class="edge">
+<title>bind&#45;&gt;evconnlistener_new</title>
+<path fill="none" stroke="#000000" stroke-width="2" d="M348.8036,-575.8314C348.9106,-568.131 349.0378,-558.9743 349.1566,-550.4166"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="352.6562,-550.4609 349.2956,-540.4133 345.6569,-550.3637 352.6562,-550.4609"></polygon>
+</g>
+<!-- setSocketKeepAlive -->
+<g id="node4" class="node">
+<title>setSocketKeepAlive</title>
+<polygon fill="none" stroke="#000000" stroke-width="3" points="413.842,-684 283.2606,-684 283.2606,-648 413.842,-648 413.842,-684"></polygon>
+<text text-anchor="middle" x="348.5513" y="-661.8" font-family="Times,serif" font-size="14.00" fill="#000000">setSocketKeepAlive</text>
+</g>
+<!-- createSocket&#45;&gt;setSocketKeepAlive -->
+<g id="edge2" class="edge">
+<title>createSocket&#45;&gt;setSocketKeepAlive</title>
+<path fill="none" stroke="#000000" stroke-width="2" d="M348.5513,-719.8314C348.5513,-712.131 348.5513,-702.9743 348.5513,-694.4166"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="352.0514,-694.4132 348.5513,-684.4133 345.0514,-694.4133 352.0514,-694.4132"></polygon>
+</g>
+<!-- setSocketKeepAlive&#45;&gt;bind -->
+<g id="edge3" class="edge">
+<title>setSocketKeepAlive&#45;&gt;bind</title>
+<path fill="none" stroke="#000000" stroke-width="2" d="M348.5513,-647.8314C348.5513,-640.131 348.5513,-630.9743 348.5513,-622.4166"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="352.0514,-622.4132 348.5513,-612.4133 345.0514,-622.4133 352.0514,-622.4132"></polygon>
+</g>
+<!-- Return -->
+<g id="node6" class="node">
+<title>Return</title>
+<polygon fill="none" stroke="#000000" stroke-width="3" points="376.6538,-468 322.4488,-468 322.4488,-432 376.6538,-432 376.6538,-468"></polygon>
+<text text-anchor="middle" x="349.5513" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">Return</text>
+</g>
+<!-- evconnlistener_new&#45;&gt;Return -->
+<g id="edge5" class="edge">
+<title>evconnlistener_new&#45;&gt;Return</title>
+<path fill="none" stroke="#000000" stroke-width="2" d="M349.5513,-503.8314C349.5513,-496.131 349.5513,-486.9743 349.5513,-478.4166"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="353.0514,-478.4132 349.5513,-468.4133 346.0514,-478.4133 353.0514,-478.4132"></polygon>
+</g>
+<!-- BStart -->
+<g id="node8" class="node">
+<title>BStart</title>
+<polygon fill="none" stroke="#000000" stroke-width="3" points="505.5513,-468 451.5513,-468 451.5513,-432 505.5513,-432 505.5513,-468"></polygon>
+<text text-anchor="middle" x="478.5513" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">start</text>
+</g>
+<!-- evconnlistener_new&#45;&gt;BStart -->
+<g id="edge6" class="edge">
+<title>evconnlistener_new&#45;&gt;BStart</title>
+<path fill="none" stroke="#000000" stroke-width="2" d="M382.1034,-503.8314C400.4483,-493.5924 423.406,-480.7788 442.3205,-470.2219"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="444.2168,-473.1717 451.243,-465.2418 440.8052,-467.0594 444.2168,-473.1717"></polygon>
+</g>
+<!-- callolc -->
+<g id="node7" class="node">
+<title>callolc</title>
+<polygon fill="none" stroke="#000000" stroke-width="3" points="599.3279,-324 437.7747,-324 437.7747,-288 599.3279,-288 599.3279,-324"></polygon>
+<text text-anchor="middle" x="518.5513" y="-301.8" font-family="Times,serif" font-size="14.00" fill="#000000">new evconnlistener_event</text>
+</g>
+<!-- init -->
+<g id="node10" class="node">
+<title>init</title>
+<polygon fill="none" stroke="#000000" stroke-width="3" points="545.5513,-252 491.5513,-252 491.5513,-216 545.5513,-216 545.5513,-252"></polygon>
+<text text-anchor="middle" x="518.5513" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">init</text>
+</g>
+<!-- callolc&#45;&gt;init -->
+<g id="edge9" class="edge">
+<title>callolc&#45;&gt;init</title>
+<path fill="none" stroke="#000000" stroke-width="2" d="M518.5513,-287.8314C518.5513,-280.131 518.5513,-270.9743 518.5513,-262.4166"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="522.0514,-262.4132 518.5513,-252.4133 515.0514,-262.4133 522.0514,-262.4132"></polygon>
+</g>
+<!-- listen -->
+<g id="node9" class="node">
+<title>listen</title>
+<polygon fill="none" stroke="#000000" stroke-width="3" points="518.5513,-396 464.5513,-396 464.5513,-360 518.5513,-360 518.5513,-396"></polygon>
+<text text-anchor="middle" x="491.5513" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">listen</text>
+</g>
+<!-- BStart&#45;&gt;listen -->
+<g id="edge7" class="edge">
+<title>BStart&#45;&gt;listen</title>
+<path fill="none" stroke="#000000" stroke-width="2" d="M481.8317,-431.8314C483.2221,-424.131 484.8754,-414.9743 486.4205,-406.4166"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="489.8941,-406.8761 488.2267,-396.4133 483.0055,-405.6322 489.8941,-406.8761"></polygon>
+</g>
+<!-- listen&#45;&gt;callolc -->
+<g id="edge8" class="edge">
+<title>listen&#45;&gt;callolc</title>
+<path fill="none" stroke="#000000" stroke-width="2" d="M498.3645,-359.8314C501.3157,-351.9617 504.8371,-342.5712 508.1063,-333.8533"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="511.4122,-335.0055 511.6463,-324.4133 504.8579,-332.5476 511.4122,-335.0055"></polygon>
+</g>
+<!-- event_assign -->
+<g id="node11" class="node">
+<title>event_assign</title>
+<polygon fill="none" stroke="#000000" stroke-width="3" points="562.8661,-180 474.2365,-180 474.2365,-144 562.8661,-144 562.8661,-180"></polygon>
+<text text-anchor="middle" x="518.5513" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">event_assign</text>
+</g>
+<!-- init&#45;&gt;event_assign -->
+<g id="edge10" class="edge">
+<title>init&#45;&gt;event_assign</title>
+<path fill="none" stroke="#000000" stroke-width="2" d="M518.5513,-215.8314C518.5513,-208.131 518.5513,-198.9743 518.5513,-190.4166"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="522.0514,-190.4132 518.5513,-180.4133 515.0514,-190.4133 522.0514,-190.4132"></polygon>
+</g>
+<!-- evconnlistener_enable -->
+<g id="node12" class="node">
+<title>evconnlistener_enable</title>
+<polygon fill="none" stroke="#000000" stroke-width="3" points="594.2212,-108 452.8814,-108 452.8814,-72 594.2212,-72 594.2212,-108"></polygon>
+<text text-anchor="middle" x="523.5513" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">evconnlistener_enable</text>
+</g>
+<!-- event_assign&#45;&gt;evconnlistener_enable -->
+<g id="edge11" class="edge">
+<title>event_assign&#45;&gt;evconnlistener_enable</title>
+<path fill="none" stroke="#000000" stroke-width="2" d="M519.813,-143.8314C520.3478,-136.131 520.9836,-126.9743 521.5779,-118.4166"></path>
+<polygon fill="#000000" stroke="#000000" stroke-width="2" points="525.0713,-118.6317 522.2726,-108.4133 518.0881,-118.1467 525.0713,-118.6317"></polygon>
+</g>
+<!-- descEvetnAssign -->
+<g id="node13" class="node">
+<title>descEvetnAssign</title>
+<polygon fill="none" stroke="#ff0000" stroke-width="3" stroke-dasharray="5,2" points="421.1539,-108 -.0513,-108 -.0513,-72 421.1539,-72 421.1539,-108"></polygon>
+<text text-anchor="middle" x="210.5513" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">new a event, and init it with variables, like fd, events, callback functions</text>
+</g>
+<!-- event_assign&#45;&gt;descEvetnAssign -->
+<g id="edge13" class="edge">
+<title>event_assign&#45;&gt;descEvetnAssign</title>
+<path fill="none" stroke="#0000ff" stroke-width="2" stroke-dasharray="5,2" d="M474.0944,-151.6075C428.11,-140.8579 355.1083,-123.7925 297.5861,-110.3458"></path>
+<polygon fill="#0000ff" stroke="#0000ff" stroke-width="2" points="298.3008,-106.9186 287.7665,-108.0503 296.7073,-113.7348 298.3008,-106.9186"></polygon>
+</g>
+<!-- evconnlistener_enable&#45;&gt;evconnlistener_new -->
+<g id="edge12" class="edge">
+<title>evconnlistener_enable&#45;&gt;evconnlistener_new</title>
+<path fill="none" stroke="#ff0000" stroke-width="2" stroke-dasharray="5,2" d="M548.4619,-108.1293C579.2294,-132.829 627.5513,-180.1871 627.5513,-234 627.5513,-378 627.5513,-378 627.5513,-378 627.5513,-469.9639 506.1201,-503.2676 423.7681,-515.2793"></path>
+<polygon fill="#ff0000" stroke="#ff0000" stroke-width="2" points="423.1057,-511.8375 413.6792,-516.6738 424.0643,-518.7715 423.1057,-511.8375"></polygon>
+</g>
+<!-- descEvConnEnable -->
+<g id="node14" class="node">
+<title>descEvConnEnable</title>
+<polygon fill="none" stroke="#ff0000" stroke-width="3" stroke-dasharray="5,2" points="701.7107,-36 345.3919,-36 345.3919,0 701.7107,0 701.7107,-36"></polygon>
+<text text-anchor="middle" x="523.5513" y="-13.8" font-family="Times,serif" font-size="14.00" fill="#000000">call event_listener_enable. In fact, it add listen event to table</text>
+</g>
+<!-- evconnlistener_enable&#45;&gt;descEvConnEnable -->
+<g id="edge14" class="edge">
+<title>evconnlistener_enable&#45;&gt;descEvConnEnable</title>
+<path fill="none" stroke="#0000ff" stroke-width="2" stroke-dasharray="5,2" d="M523.5513,-71.8314C523.5513,-64.131 523.5513,-54.9743 523.5513,-46.4166"></path>
+<polygon fill="#0000ff" stroke="#0000ff" stroke-width="2" points="527.0514,-46.4132 523.5513,-36.4133 520.0514,-46.4133 527.0514,-46.4132"></polygon>
+</g>
+</g>
+</svg>
+</p>
+
+      </div>
+      <div class="md-sidebar-toc"><ul>
+<li><a href="#eventlistener">eventlistener</a></li>
+</ul>
+</div>
+      <a id="sidebar-toc-btn">≡</a>
+    </body>
+
+
+
+
+
+    <script>
+(function bindTaskListEvent() {
+  var taskListItemCheckboxes = document.body.getElementsByClassName('task-list-item-checkbox')
+  for (var i = 0; i < taskListItemCheckboxes.length; i++) {
+    var checkbox = taskListItemCheckboxes[i]
+    var li = checkbox.parentElement
+    if (li.tagName !== 'LI') li = li.parentElement
+    if (li.tagName === 'LI') {
+      li.classList.add('task-list-item')
+    }
+  }
+}())
+</script>
+
+<script>
+
+var sidebarTOCBtn = document.getElementById('sidebar-toc-btn')
+sidebarTOCBtn.addEventListener('click', function(event) {
+  event.stopPropagation()
+  if (document.body.hasAttribute('html-show-sidebar-toc')) {
+    document.body.removeAttribute('html-show-sidebar-toc')
+  } else {
+    document.body.setAttribute('html-show-sidebar-toc', true)
+  }
+})
+</script>
+
+  </html>
